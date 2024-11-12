@@ -92,6 +92,27 @@ func (w *Writer[T]) BlockingReader() *Reader[T] {
 	}
 }
 
+// BlockingCurrentReader returns a new reader positionned at the buffer's
+// edge.
+func (w *Writer[T]) BlockingCurrentReader() *Reader[T] {
+	if w.closed {
+		return nil
+	}
+
+	cycle := w.cycle
+	pos := w.wPos
+
+	w.wg.Add(1)
+
+	return &Reader[T]{
+		w:      w,
+		block:  true,
+		cycle:  cycle,
+		rPos:   pos,
+		closed: new(uint64),
+	}
+}
+
 // Append values to the slice
 func (w *Writer[T]) Append(values ...T) (int, error) {
 	return w.Write(values)
